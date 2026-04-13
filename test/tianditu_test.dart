@@ -3,7 +3,7 @@ import 'package:tianditu/tianditu.dart';
 
 void main() {
   // 创建测试用的天地图服务实例
-  final tiandituService = TiandituWebService('test_api_key');
+  final tiandituService = TiandituService('test_api_key');
 
   group('TiandituService', () {
     test('should create instance with api key', () {
@@ -58,6 +58,20 @@ void main() {
       expect(location.lat, 39.90923);
     });
 
+    test('Location should parse numeric strings', () {
+      final location = Location.fromJson({
+        'score': '90',
+        'keyWord': '北京',
+        'lon': '116.397428',
+        'level': 'city',
+        'lat': '39.90923',
+      });
+
+      expect(location.score, 90);
+      expect(location.lon, 116.397428);
+      expect(location.lat, 39.90923);
+    });
+
     test('Address should be created correctly', () {
       final location = Location(lon: 116.397428, lat: 39.90923);
       final addressDetail = AddressDetail(
@@ -75,6 +89,18 @@ void main() {
       expect(address.formattedAddress, '北京市东城区天安门');
       expect(address.location?.lon, 116.397428);
       expect(address.addressComponent?.province, '北京市');
+    });
+
+    test('AddressDetail should accept *_distince and string distances', () {
+      final detail = AddressDetail.fromJson({
+        'address_distince': '45',
+        'road_distince': 30,
+        'poi_distince': '120',
+      });
+
+      expect(detail.addressDistance, 45);
+      expect(detail.roadDistance, 30);
+      expect(detail.poiDistance, 120);
     });
   });
 }
