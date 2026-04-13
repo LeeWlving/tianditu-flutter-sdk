@@ -1,5 +1,6 @@
 
 import '../common/base_service.dart';
+import '../common/data/location.dart';
 import 'data/geo_coder_address_result.dart';
 import 'data/geo_coder_location_result.dart';
 
@@ -34,5 +35,22 @@ class GeoCoderService extends BaseService {
       uri,
       (json) => GeoCoderAddressResult.fromJson(json as Map<String, dynamic>),
     );
+  }
+
+  /// 地理编码
+  /// [address] 地址，如：北京市海淀区莲花池西路28号
+  Future<GeoCoderLocationResult> geocode({required String address}) async {
+    return addressToLocation(address);
+  }
+
+  /// 逆地理编码
+  /// [location] 坐标点（经纬度）
+  Future<GeoCoderAddressResult> reverseGeocode({required Location location}) async {
+    final lon = location.lon;
+    final lat = location.lat;
+    if (lon == null || lat == null) {
+      throw ArgumentError('location.lon and location.lat are required');
+    }
+    return locationToAddress(lon, lat);
   }
 }

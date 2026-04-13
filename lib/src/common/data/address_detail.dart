@@ -44,7 +44,7 @@ class AddressDetail {
   final String? poiPosition;
   
   /// 距离此点最近poi点的距离
-  final String? poiDistance;
+  final int? poiDistance;
 
   /// 创建AddressDetail实例
   AddressDetail({
@@ -70,7 +70,7 @@ class AddressDetail {
     return AddressDetail(
       address: json['address'] as String?,
       addressPosition: json['address_position'] as String?,
-      addressDistance: json['address_distance'] as int?,
+      addressDistance: _readDistance(json, 'address_distance'),
       nation: json['nation'] as String?,
       province: json['province'] as String?,
       provinceCode: json['province_code'] as String?,
@@ -79,10 +79,10 @@ class AddressDetail {
       county: json['county'] as String?,
       countyCode: json['county_code'] as String?,
       road: json['road'] as String?,
-      roadDistance: json['road_distance'] as int?,
+      roadDistance: _readDistance(json, 'road_distance'),
       poi: json['poi'] as String?,
       poiPosition: json['poi_position'] as String?,
-      poiDistance: json['poi_distance'] as String?,
+      poiDistance: _readDistance(json, 'poi_distance'),
     );
   }
 
@@ -92,6 +92,7 @@ class AddressDetail {
       'address': address,
       'address_position': addressPosition,
       'address_distance': addressDistance,
+      'address_distince': addressDistance,
       'nation': nation,
       'province': province,
       'province_code': provinceCode,
@@ -101,9 +102,25 @@ class AddressDetail {
       'county_code': countyCode,
       'road': road,
       'road_distance': roadDistance,
+      'road_distince': roadDistance,
       'poi': poi,
       'poi_position': poiPosition,
       'poi_distance': poiDistance,
+      'poi_distince': poiDistance,
     };
+  }
+
+  static int? _readDistance(Map<String, dynamic> json, String key) {
+    final direct = _asInt(json[key]);
+    if (direct != null) return direct;
+    final altKey = key.replaceFirst('distance', 'distince');
+    return _asInt(json[altKey]);
+  }
+
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
   }
 }

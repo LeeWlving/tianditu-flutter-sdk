@@ -28,11 +28,11 @@ class Location {
   /// 从JSON字符串解析Location
   factory Location.fromJson(Map<String, dynamic> json) {
     return Location(
-      score: json['score'] as int?,
+      score: _asInt(json['score']),
       keyWord: json['keyWord'] as String?,
-      lon: json['lon'] as double?,
+      lon: _asDouble(json['lon']),
       level: json['level'] as String?,
-      lat: json['lat'] as double?,
+      lat: _asDouble(json['lat']),
     );
   }
 
@@ -45,5 +45,19 @@ class Location {
       'level': level,
       'lat': lat,
     };
+  }
+
+  static int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  static double? _asDouble(dynamic value) {
+    if (value is double) return value;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
   }
 }
