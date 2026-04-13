@@ -141,5 +141,5 @@ MIT License
 
 如有问题或建议，请通过以下方式联系：
 
-- GitHub: [https://github.com/yourusername/tianditu-flutter-sdk](https://github.com/yourusername/tianditu-flutter-sdk)
-- 邮箱: your@email.com
+- GitHub: [https://github.com/LeeWlving/tianditu-flutter-sdk](https://github.com/LeeWlving/tianditu-flutter-sdk)
+- 邮箱: LeeWlving@gmail.com
