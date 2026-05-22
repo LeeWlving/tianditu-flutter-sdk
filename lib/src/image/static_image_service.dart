@@ -7,7 +7,7 @@ import 'params/static_image_params.dart';
 class StaticImageService extends BaseService {
   /// 创建StaticImageService实例
   /// [tk] 天地图密钥
-  StaticImageService(String tk) : super(tk);
+  StaticImageService(super.tk);
 
   /// 获取静态地图图片
   /// [params] 静态地图参数

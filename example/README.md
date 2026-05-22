@@ -1,16 +1,16 @@
-# tianditu_example
+# 天地图 SDK 示例
 
-Demonstrates how to use the tianditu plugin.
+该目录演示如何在 Flutter 应用中使用 `tianditu` 包。
 
-## Getting Started
+## 运行
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run
+```
 
-A few resources to get you started if this is your first Flutter project:
+使用前请在示例代码中替换为自己的天地图 API 密钥。
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 文档
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+完整功能、统一导出说明、参数示例和错误处理方式请查看上级目录的 `README.md`。
