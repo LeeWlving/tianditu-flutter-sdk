@@ -11,6 +11,7 @@
 - 🚌 公交规划服务 - 提供公交路线规划
 - 📷 静态地图服务 - 生成静态地图图片
 
+
 ## 安装
 
 在你的Flutter项目的`pubspec.yaml`文件中添加以下依赖：
@@ -44,14 +45,16 @@ final placeSearchService = tiandituService.getPlaceSearchService();
 
 // 根据关键词搜索POI
 final searchResult = await placeSearchService.search(
-  keyword: '餐厅',
-  city: '北京',
-  pageSize: 10,
+  PlaceSearchParams(
+    keyWord: '餐厅',
+    specify: '北京',
+    count: '10',
+  ),
 );
 
 // 输出搜索结果
-print('搜索到的餐厅数量: ${searchResult.pois.length}');
-for (var poi in searchResult.pois) {
+print('搜索到的餐厅数量: ${searchResult.pois?.length ?? 0}');
+for (var poi in searchResult.pois ?? []) {
   print('${poi.name} - ${poi.address}');
 }
 ```
@@ -86,35 +89,78 @@ print('详细地址: ${reverseGeocodeResult.addressDetail}');
 ```dart
 final staticImageService = tiandituService.getStaticImageService();
 
-// 获取静态地图URL
-final mapUrl = staticImageService.getStaticImageUrl(
-  location: Location(lat: 39.908722, lon: 116.397496),
-  zoom: 15,
-  width: 600,
-  height: 400,
+// 获取静态地图图片字节
+final imageBytes = await staticImageService.getImage(
+  StaticImageParams(
+    center: '116.397496,39.908722',
+    zoom: 15,
+    width: 600,
+    height: 400,
+  ),
 );
 
 // 在Image组件中使用
-Image.network(mapUrl);
+Image.memory(Uint8List.fromList(imageBytes));
 ```
 
-## 服务说明
+如果需要在 Flutter 中显示静态地图图片，请确保导入 `dart:typed_data`：
 
-| 服务名称 | 描述 | 使用方法 |
-|---------|------|--------|
-| 地名搜索服务 | 支持关键词、分类、区域等多种条件的POI搜索 | `tiandituService.getPlaceSearchService()` |
-| 地理编码服务 | 实现地址到坐标的转换 | `tiandituService.getGeoCoderService()` |
-| 逆地理编码服务 | 实现坐标到地址的转换 | `tiandituService.getGeoCoderService()` |
-| 行政区划服务 | 获取各级行政区划信息 | `tiandituService.getAdministrativeService()` |
-| 驾车规划服务 | 提供驾车路线规划 | `tiandituService.getDriveService()` |
-| 公交规划服务 | 提供公交路线规划 | `tiandituService.getBusService()` |
-| 静态地图服务 | 生成静态地图图片 | `tiandituService.getStaticImageService()` |
+```dart
+import 'dart:typed_data';
+```
+
+### 行政区划示例
+
+```dart
+final administrativeService = tiandituService.getAdministrativeService();
+
+final result = await administrativeService.getAdministrative(
+  AdministrativeParams(
+    keyword: '北京',
+    childLevel: 1,
+    extensions: true,
+  ),
+);
+
+print('行政区划名称: ${result.data?.district?.name}');
+```
+
+### 驾车规划示例
+
+```dart
+final driveService = tiandituService.getDriveService();
+
+final driveResult = await driveService.getDriveRoutes(
+  DriveParams(
+    orig: '116.397496,39.908722',
+    dest: '116.321011,39.983424',
+    style: 0,
+  ),
+);
+
+print('路线数量: ${driveResult.routes?.length ?? 0}');
+```
+
+### 公交规划示例
+
+```dart
+final busService = tiandituService.getBusService();
+
+final busResult = await busService.getBusLine(
+  BusLineParams(
+    startposition: '116.397496,39.908722',
+    endposition: '116.321011,39.983424',
+  ),
+);
+
+print(busResult);
+```
 
 ## 获取API密钥
 
 1. 访问[天地图开发者平台](https://console.tianditu.gov.cn/api/key)
 2. 注册/登录账号
-3. 创建新应用
+3. 创建新应用，应用类型选择“服务器端”
 4. 获取API密钥
 
 ## 注意事项

@@ -1,5 +1,3 @@
-
-/// 天地图WEB服务入口类
 import 'administrative/administrative_service.dart';
 import 'bus/bus_service.dart';
 import 'coder/geo_coder_service.dart';
@@ -7,6 +5,7 @@ import 'drive/drive_service.dart';
 import 'image/static_image_service.dart';
 import 'place/place_search_service.dart';
 
+/// 天地图WEB服务入口类
 class TiandituService {
   /// 天地图API基础URL
   static const String uri = 'https://api.tianditu.gov.cn';
