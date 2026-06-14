@@ -1,48 +1,47 @@
-
 /// 地址详情模型
 class AddressDetail {
   /// 此点最近地点信息
   final String? address;
-  
+
   /// 此点在最近地点信息方向
   final String? addressPosition;
-  
+
   /// 此点距离最近地点信息距离
   final int? addressDistance;
-  
+
   /// 国家
   final String? nation;
-  
+
   /// 省份
   final String? province;
-  
+
   /// 省份编码
   final String? provinceCode;
-  
+
   /// 此点所在国家或城市或区县
   final String? city;
-  
+
   /// 城市编码
   final String? cityCode;
-  
+
   /// 区县
   final String? county;
-  
+
   /// 区县编码
   final String? countyCode;
-  
+
   /// 距离此点最近的路
   final String? road;
-  
+
   /// 此点距离此路的距离
   final int? roadDistance;
-  
+
   /// 距离此点最近poi点
   final String? poi;
-  
+
   /// 此点在最近poi点的方向
   final String? poiPosition;
-  
+
   /// 距离此点最近poi点的距离
   final int? poiDistance;
 

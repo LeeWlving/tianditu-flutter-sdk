@@ -1,12 +1,11 @@
-
 /// 公交规划请求参数模型
 class BusLineParams {
   /// 出发点坐标，格式："经度，纬度"
   final String startposition;
-  
+
   /// 终点坐标，格式："经度，纬度"
   final String endposition;
-  
+
   /// 获取线路规划类型(按位判断规划类型，以支持同时获取多种规划结果)
   /// 第0位为1，较快捷；
   /// 第1位为1，少换乘；

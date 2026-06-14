@@ -1,145 +1,256 @@
-# 天地图Flutter SDK
+# 天地图 Flutter SDK
 
-天地图Flutter SDK，封装了天地图WEB服务API，提供了丰富的地理空间数据服务。
+面向 Flutter 的天地图地图组件与 Web Service 客户端。地图组件使用纯 Flutter
+渲染，支持 Android、iOS、Web、macOS、Windows 和 Linux。
 
-## 功能特点
+## 当前能力
 
-- 🌍 地名搜索服务 - 支持多种条件的POI搜索
-- 📍 地理编码/逆地理编码服务 - 实现地址与坐标的相互转换
-- 🗺️ 行政区划服务 - 获取各级行政区划信息
-- 🚗 驾车规划服务 - 提供驾车路线规划
-- 🚌 公交规划服务 - 提供公交路线规划
-- 📷 静态地图服务 - 生成静态地图图片
+- 天地图矢量、影像、地形底图及中文注记
+- 地图拖动、缩放、旋转、范围自适应和控制器
+- Marker、Polyline、Polygon、Circle 覆盖物
+- 一次定位、持续定位、用户位置蓝点和精度圈
+- 圆形和多边形前台地理围栏
+- 点击、长按和相机变化回调
+- 普通、区域、周边、视野和多边形 POI 搜索
+- 地理编码、行政区划、驾车、步行、公交和静态地图服务
+- 可注入 HTTP Client、请求超时、结构化异常和统一资源释放
 
 ## 安装
 
-在你的Flutter项目的`pubspec.yaml`文件中添加以下依赖：
-
 ```yaml
 dependencies:
-  tianditu: ^0.0.1
+  tianditu: ^0.1.0
 ```
-
-然后运行：
 
 ```bash
 flutter pub get
 ```
 
-## 使用示例
+在[天地图控制台](https://console.tianditu.gov.cn/api/key)创建应用并获取 Key。
+生产应用应配置平台和域名白名单，不要把具备服务端权限的 Key 放入客户端。
 
-### 初始化服务
+## 文档导航
+
+- [示例应用](example/README.md)
+- [平台定位权限配置](doc/platform-setup.md)
+- [功能支持矩阵](doc/capabilities.md)
+
+## 地图组件
 
 ```dart
+import 'package:flutter/material.dart';
 import 'package:tianditu/tianditu.dart';
 
-// 替换为你自己的天地图API密钥
-final tiandituService = TiandituService('your_tian_di_tu_api_key');
+const apiKey = String.fromEnvironment('TIANDITU_TK');
+const beijing = TiandituLatLng(39.9042, 116.4074);
+
+TiandituMap(
+  apiKey: apiKey,
+  mapType: TiandituMapType.vector,
+  initialCamera: const TiandituCameraPosition(
+    target: beijing,
+    zoom: 12,
+  ),
+  markers: const [
+    TiandituMarker(
+      position: beijing,
+      alignment: Alignment.bottomCenter,
+      child: Icon(Icons.location_pin, color: Colors.red, size: 40),
+    ),
+  ],
+  onTap: (position) => debugPrint('$position'),
+);
 ```
 
-### 地名搜索示例
+运行示例：
+
+```bash
+cd example
+flutter run --dart-define=TIANDITU_TK=你的Key
+```
+
+### 控制地图
 
 ```dart
-final placeSearchService = tiandituService.getPlaceSearchService();
+final controller = TiandituMapController();
 
-// 根据关键词搜索POI
-final searchResult = await placeSearchService.search(
-  keyword: '餐厅',
-  city: '北京',
-  pageSize: 10,
+TiandituMap(
+  apiKey: apiKey,
+  controller: controller,
 );
 
-// 输出搜索结果
-print('搜索到的餐厅数量: ${searchResult.pois.length}');
-for (var poi in searchResult.pois) {
-  print('${poi.name} - ${poi.address}');
+controller.move(const TiandituLatLng(31.2304, 121.4737), 14);
+controller.rotate(30);
+```
+
+## 定位
+
+定位来自 Android、iOS、Web、macOS 和 Windows 的系统能力，不是天地图服务。
+
+```dart
+final tianditu = TiandituService(apiKey);
+final position = await tianditu.location.getCurrentPosition();
+
+TiandituMap(
+  apiKey: apiKey,
+  controller: controller,
+  userLocation: TiandituUserLocation(
+    position: position.coordinate,
+    accuracyInMeters: position.accuracy,
+  ),
+);
+```
+
+持续定位：
+
+```dart
+final positions = tianditu.location.getPositionStream(
+  options: const TiandituLocationOptions(
+    accuracy: TiandituLocationAccuracy.high,
+    distanceFilter: 10,
+  ),
+);
+```
+
+应用侧必须配置平台权限：
+
+- Android：`ACCESS_COARSE_LOCATION` 或 `ACCESS_FINE_LOCATION`
+- iOS：`NSLocationWhenInUseUsageDescription`
+- macOS：位置权限描述及 Location entitlement
+- Web：必须使用 HTTPS 或 localhost，由浏览器授权
+
+完整配置见[平台定位权限配置](doc/platform-setup.md)。
+
+只有确实需要后台定位时才应申请后台权限。当前 SDK 不承诺应用被系统终止后的后台持续定位。
+
+## 搜索
+
+```dart
+final result = await tianditu.placeSearch.searchNearby(
+  keyword: '充电站',
+  center: position.coordinate,
+  radiusInMeters: 3000,
+);
+
+final visibleResult = await tianditu.placeSearch.searchInBounds(
+  keyword: '医院',
+  bounds: const TiandituLatLngBounds(
+    southwest: TiandituLatLng(39.8, 116.2),
+    northeast: TiandituLatLng(40.0, 116.6),
+  ),
+  zoom: 12,
+);
+```
+
+也可使用 `PlaceSearchParams.keyword`、`inRegion`、`nearby`、`inBounds` 和
+`inPolygon` 构造复杂请求。
+
+## 路线规划
+
+```dart
+final route = await tianditu.drive.plan(
+  origin: const TiandituLatLng(39.9042, 116.4074),
+  destination: const TiandituLatLng(39.9911, 116.3103),
+  strategy: DriveRouteStrategy.fastest,
+);
+
+final routeLine = route.toPolyline();
+controller.fitCoordinates(route.path);
+
+TiandituMap(
+  apiKey: apiKey,
+  polylines: [routeLine],
+);
+```
+
+`DriveRouteStrategy.walking` 可用于步行规划。公交接口目前仍返回天地图原始 JSON，
+后续需要根据真实响应样本补齐稳定的数据模型。
+
+这里的“路线规划”是获取路线几何和分段描述，不包括导航状态机、道路匹配、实时路况、
+偏航重算或语音播报。
+
+## 地理围栏
+
+```dart
+final monitor = TiandituGeofenceMonitor([
+  const TiandituCircularGeofence(
+    id: 'office',
+    center: TiandituLatLng(39.9042, 116.4074),
+    radiusInMeters: 500,
+  ),
+]);
+
+final events = monitor.monitor(
+  tianditu.location.getPositionStream(),
+);
+
+events.listen((event) {
+  debugPrint('${event.geofence.id}: ${event.transition}');
+});
+```
+
+该实现适合应用在前台运行期间的业务围栏。Android Geofencing API、iOS
+Region Monitoring 一类系统级后台围栏需要单独的原生插件和后台权限。
+
+## Web Service
+
+`TiandituService` 会复用一个 HTTP Client。由 SDK 创建服务时，应在不再使用后调用
+`close()`。
+
+```dart
+final tianditu = TiandituService(apiKey);
+
+try {
+  final result = await tianditu.geocoder.geocode(address: '北京市天安门');
+  debugPrint('${result.location?.lon}, ${result.location?.lat}');
+
+  final places = await tianditu.placeSearch.search(
+    PlaceSearchParams(
+      keyWord: '餐厅',
+      specify: '北京',
+      count: '20',
+    ),
+  );
+  debugPrint('结果数量: ${places.count}');
+} on TiandituException catch (error) {
+  debugPrint('${error.statusCode}: ${error.message}');
+} finally {
+  tianditu.close();
 }
 ```
 
-### 地理编码示例
+旧版 `getGeoCoderService()` 等方法仍可使用，但推荐直接使用 `geocoder`、
+`placeSearch`、`administrative`、`drive`、`bus` 和 `staticImage` 属性。
 
-```dart
-final geoCoderService = tiandituService.getGeoCoderService();
+## 天地图不能单独提供的能力
 
-// 地址转坐标
-final geocodeResult = await geoCoderService.geocode(
-  address: '北京市海淀区中关村南大街5号',
-);
+| 功能 | 当前实现 | 限制 |
+|---|---|---|
+| 设备定位 | 系统定位服务 | 不是天地图 API |
+| 天气 | 未内置 | 需要中国天气、和风天气等独立供应商及其 Key |
+| 前台地理围栏 | SDK 几何计算 | 应用停止后不会继续触发 |
+| 后台地理围栏 | 未内置 | 需要 Android/iOS 原生后台能力 |
+| 路线规划 | 天地图 Web Service | 可获得路线数据，但不是实时导航引擎 |
+| 实时导航 | 未内置 | 缺少道路匹配、偏航重算、路况和语音播报 |
 
-print('坐标: ${geocodeResult.location.lat}, ${geocodeResult.location.lon}');
-```
+天气供应商应由业务应用选择，SDK 不会伪造或从地图瓦片推导天气。建议通过独立的
+`WeatherRepository` 在业务层接入，避免把另一家服务的 Key 和配额耦合进地图 SDK。
+完整支持情况见[功能支持矩阵](doc/capabilities.md)。
 
-### 逆地理编码示例
+## 其他能力边界
 
-```dart
-// 坐标转地址
-final reverseGeocodeResult = await geoCoderService.reverseGeocode(
-  location: Location(lat: 39.908722, lon: 116.397496),
-);
+当前版本提供的是天地图 WMTS 栅格底图组件，不等同于 Mapbox 的客户端矢量渲染
+引擎。以下能力尚未实现：
 
-print('地址: ${reverseGeocodeResult.address}');
-print('详细地址: ${reverseGeocodeResult.addressDetail}');
-```
+- 矢量瓦片样式表达式和运行时换肤
+- 聚合标注、热力图、海量点和 3D 地形
+- 离线地图包、磁盘缓存策略和请求配额治理
+- 轨迹吸附、实时路况、偏航重算和导航播报
+- 原生 Android/iOS 天地图 SDK 适配
 
-### 静态地图示例
-
-```dart
-final staticImageService = tiandituService.getStaticImageService();
-
-// 获取静态地图URL
-final mapUrl = staticImageService.getStaticImageUrl(
-  location: Location(lat: 39.908722, lon: 116.397496),
-  zoom: 15,
-  width: 600,
-  height: 400,
-);
-
-// 在Image组件中使用
-Image.network(mapUrl);
-```
-
-## 服务说明
-
-| 服务名称 | 描述 | 使用方法 |
-|---------|------|--------|
-| 地名搜索服务 | 支持关键词、分类、区域等多种条件的POI搜索 | `tiandituService.getPlaceSearchService()` |
-| 地理编码服务 | 实现地址到坐标的转换 | `tiandituService.getGeoCoderService()` |
-| 逆地理编码服务 | 实现坐标到地址的转换 | `tiandituService.getGeoCoderService()` |
-| 行政区划服务 | 获取各级行政区划信息 | `tiandituService.getAdministrativeService()` |
-| 驾车规划服务 | 提供驾车路线规划 | `tiandituService.getDriveService()` |
-| 公交规划服务 | 提供公交路线规划 | `tiandituService.getBusService()` |
-| 静态地图服务 | 生成静态地图图片 | `tiandituService.getStaticImageService()` |
-
-## 获取API密钥
-
-1. 访问[天地图开发者平台](https://console.tianditu.gov.cn/api/key)
-2. 注册/登录账号
-3. 创建新应用
-4. 获取API密钥
-
-## 注意事项
-
-1. 本SDK仅封装了天地图WEB服务API，使用时需遵守天地图的使用条款
-2. 不同服务的API调用次数限制不同，请合理使用
-3. 部分服务需要额外开通权限，请在天地图控制台查看
-4. 建议在生产环境中使用时，对API密钥进行安全管理
-
-## 依赖库
-
-- [http](https://pub.dev/packages/http) - 用于网络请求
-- [xml](https://pub.dev/packages/xml) - 用于XML数据解析
+向商业级 SDK 演进时，建议按“稳定 API 与可观测性、缓存与海量覆盖物、定位与轨迹、
+离线能力、矢量渲染与导航”的顺序迭代，并为每项能力建立性能基线和真机集成测试。
 
 ## 许可证
 
-MIT License
-
-## 贡献
-
-欢迎提交Issue和Pull Request！
-
-## 联系方式
-
-如有问题或建议，请通过以下方式联系：
-
-- GitHub: [https://github.com/LeeWlving/tianditu-flutter-sdk](https://github.com/LeeWlving/tianditu-flutter-sdk)
-- 邮箱: LeeWlving@gmail.com
+MIT。地图数据和服务的使用仍须遵守天地图平台条款及配额限制。

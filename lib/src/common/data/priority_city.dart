@@ -1,18 +1,17 @@
-
 /// 推荐行政区城市模型
 class PriorityCity {
   /// 行政区名称
   final String? name;
-  
+
   /// 城市数量
   final int? count;
-  
+
   /// 行政区经纬度，坐标 x，y
   final String? lonlat;
-  
+
   /// 英文行政名称
   final String? ename;
-  
+
   /// 城市国标码，9位国标码
   final String? adminCode;
 

@@ -1,59 +1,58 @@
-
 import 'station_data.dart';
 
 /// POI对象模型
 class Poi {
   /// Poi点名称
   final String? name;
-  
+
   /// 电话
   final String? phone;
-  
+
   /// 地址
   final String? address;
-  
+
   /// 坐标，格式：x,y
   final String? lonlat;
-  
+
   /// poi类型：101:POI数据 102:公交站点
   final int? poiType;
-  
+
   /// 英文地址
   final String? eaddress;
-  
+
   /// poi点英文名称
   final String? ename;
-  
+
   /// poi热点ID
   final String? hotPointID;
-  
+
   /// 所属省名称
   final String? province;
-  
+
   /// 省行政区编码
   final String? provinceCode;
-  
+
   /// 所属城市名称
   final String? city;
-  
+
   /// 市行政区编码
   final String? cityCode;
-  
+
   /// 所属区县名称
   final String? county;
-  
+
   /// 区县行政区编码
   final String? countyCode;
-  
+
   /// 数据信息来源
   final String? source;
-  
+
   /// 分类编码
   final String? typeCode;
-  
+
   /// 分类名称
   final String? typeName;
-  
+
   /// 车站信息结构体，数据poiType=102
   final List<StationData>? stationData;
 
@@ -101,8 +100,8 @@ class Poi {
       typeName: json['typeName'] as String?,
       stationData: json['stationData'] != null
           ? (json['stationData'] as List<dynamic>)
-              .map((e) => StationData.fromJson(e as Map<String, dynamic>))
-              .toList()
+                .map((e) => StationData.fromJson(e as Map<String, dynamic>))
+                .toList()
           : null,
     );
   }
