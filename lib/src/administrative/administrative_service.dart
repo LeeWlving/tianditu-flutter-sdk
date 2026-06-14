@@ -1,4 +1,3 @@
-
 import '../common/base_service.dart';
 import 'data/administrative_result.dart';
 import 'params/administrative_params.dart';
@@ -8,25 +7,21 @@ import 'params/administrative_params.dart';
 class AdministrativeService extends BaseService {
   /// 创建AdministrativeService实例
   /// [tk] 天地图密钥
-  AdministrativeService(String tk) : super(tk);
+  AdministrativeService(super.tk, {super.client, super.baseUri, super.timeout});
 
   /// 查询行政区划
   /// [params] 行政区划查询参数
-  Future<AdministrativeResult> getAdministrative(AdministrativeParams params) async {
-    final List<String> sb = [];
-    
-    if (params.keyword != null && params.keyword!.isNotEmpty) {
-      sb.add('keyword=${params.keyword}');
-    }
-    
-    sb.add('childLevel=${params.childLevel}');
-    sb.add('extensions=${params.extensions ? 'all' : 'base'}');
-    
-    final url = '/v2/administrative?${sb.join('&')}';
-    
+  Future<AdministrativeResult> getAdministrative(
+    AdministrativeParams params,
+  ) async {
     return request(
-      url,
-      (json) => AdministrativeResult.fromJson(json as Map<String, dynamic>),
+      '/v2/administrative',
+      AdministrativeResult.fromJson,
+      queryParameters: {
+        'keyword': params.keyword,
+        'childLevel': params.childLevel.toString(),
+        'extensions': params.extensions ? 'all' : 'base',
+      },
     );
   }
 }

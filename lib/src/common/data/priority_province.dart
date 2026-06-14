@@ -1,21 +1,20 @@
-
 /// 省份信息模型
 class PriorityProvince {
   /// 行政名称
   final String? name;
-  
+
   /// 包含数量
   final String? count;
-  
+
   /// 行政区经纬度，坐标x,y
   final String? lonlat;
-  
+
   /// 省国标码
   final String? adminCode;
-  
+
   /// 英文行政名称
   final String? ename;
-  
+
   /// 有无下一级行政区，有则false，无则true
   final String? isleaf;
 

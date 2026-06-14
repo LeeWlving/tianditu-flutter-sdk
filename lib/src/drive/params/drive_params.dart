@@ -1,17 +1,28 @@
+import '../../map/tianditu_map_models.dart';
+
+enum DriveRouteStrategy {
+  fastest(0),
+  shortest(1),
+  avoidHighways(2),
+  walking(3);
+
+  const DriveRouteStrategy(this.value);
+  final int value;
+}
 
 /// 驾车规划参数模型
 class DriveParams {
   /// 起点经纬度，格式：x,y，范围：-180,-90,180,90
   final String orig;
-  
+
   /// 终点经纬度，格式：x,y，范围：-180,-90,180,90
   final String dest;
-  
+
   /// 途径点经纬度字符串
   /// 格式：116.35506,39.92277;116.35506,39.92277
   /// 两个坐标之间以分号隔开，坐标xy之间用逗号隔开(都是半角)
   final String? mid;
-  
+
   /// 导航路线类型，默认值：0
   /// 0：最快路线，1：最短路线，2：避开高速，3：步行
   final int style;
@@ -23,6 +34,23 @@ class DriveParams {
     this.mid,
     this.style = 0,
   });
+
+  /// 使用类型安全的坐标创建线路规划参数。
+  factory DriveParams.coordinates({
+    required TiandituLatLng origin,
+    required TiandituLatLng destination,
+    List<TiandituLatLng> waypoints = const [],
+    DriveRouteStrategy strategy = DriveRouteStrategy.fastest,
+  }) {
+    String value(TiandituLatLng point) =>
+        '${point.longitude},${point.latitude}';
+    return DriveParams(
+      orig: value(origin),
+      dest: value(destination),
+      mid: waypoints.isEmpty ? null : waypoints.map(value).join(';'),
+      style: strategy.value,
+    );
+  }
 
   /// 从JSON字符串解析DriveParams
   factory DriveParams.fromJson(Map<String, dynamic> json) {
@@ -39,7 +67,7 @@ class DriveParams {
     return {
       'orig': orig,
       'dest': dest,
-      'mid': mid,
+      if (mid != null) 'mid': mid,
       'style': style,
     };
   }

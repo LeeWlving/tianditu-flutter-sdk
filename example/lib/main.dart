@@ -1,90 +1,111 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-
 import 'package:tianditu/tianditu.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(const MyApp());
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  static const apiKey = String.fromEnvironment('TIANDITU_TK');
+
   @override
-  State<MyApp> createState() => _MyAppState();
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: MapDemoPage(),
+    );
+  }
 }
 
-class _MyAppState extends State<MyApp> {
-  String _result = '天地图Flutter SDK示例';
-  bool _isLoading = false;
+class MapDemoPage extends StatefulWidget {
+  const MapDemoPage({super.key});
 
   @override
-  void initState() {
-    super.initState();
-  }
+  State<MapDemoPage> createState() => _MapDemoPageState();
+}
 
-  // 测试地理编码功能
-  Future<void> testGeocode() async {
-    setState(() {
-      _isLoading = true;
-      _result = '正在测试地理编码...';
-    });
+class _MapDemoPageState extends State<MapDemoPage> {
+  final _controller = TiandituMapController();
+  final _locationService = TiandituLocationService();
+  var _mapType = TiandituMapType.vector;
+  TiandituPosition? _position;
+  String? _message;
 
+  Future<void> _locate() async {
     try {
-      // 注意：这里需要替换为你自己的API密钥
-      final tiandituService = TiandituService('your_tian_di_tu_api_key');
-      final geoCoderService = tiandituService.getGeoCoderService();
-
-      // 测试地址转坐标
-      final result = await geoCoderService.addressToLocation('北京市海淀区中关村南大街5号');
-      
+      final position = await _locationService.getCurrentPosition();
+      if (!mounted) return;
       setState(() {
-        if (result.location != null) {
-          _result = '地理编码成功！\n' 
-            '状态: ${result.status}\n' 
-            '信息: ${result.msg}\n' 
-            '坐标: ${result.location!.lon}, ${result.location!.lat}';
-        } else {
-          _result = '地理编码成功，但未返回坐标\n' 
-            '状态: ${result.status}\n' 
-            '信息: ${result.msg}';
-        }
+        _position = position;
+        _message = null;
       });
-    } catch (e) {
-      setState(() {
-        _result = '地理编码失败: $e';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      _controller.move(position.coordinate, 16);
+    } on TiandituLocationException catch (error) {
+      if (!mounted) return;
+      setState(() => _message = error.message);
     }
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('天地图Flutter SDK示例')),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(_result),
-                const SizedBox(height: 20),
-                _isLoading
-                    ? const CircularProgressIndicator()
-                    : ElevatedButton(
-                        onPressed: testGeocode,
-                        child: const Text('测试地理编码'),
-                      ),
-              ],
-            ),
+    const beijing = TiandituLatLng(39.9042, 116.4074);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('天地图 Flutter SDK'),
+        actions: [
+          PopupMenuButton<TiandituMapType>(
+            initialValue: _mapType,
+            onSelected: (value) => setState(() => _mapType = value),
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: TiandituMapType.vector, child: Text('矢量')),
+              PopupMenuItem(value: TiandituMapType.imagery, child: Text('影像')),
+              PopupMenuItem(value: TiandituMapType.terrain, child: Text('地形')),
+            ],
           ),
-        ),
+        ],
       ),
+      body: TiandituMap(
+        apiKey: MyApp.apiKey,
+        controller: _controller,
+        mapType: _mapType,
+        initialCamera: const TiandituCameraPosition(target: beijing, zoom: 11),
+        markers: const [
+          TiandituMarker(
+            position: beijing,
+            alignment: Alignment.bottomCenter,
+            child: Icon(Icons.location_pin, color: Colors.red, size: 40),
+          ),
+        ],
+        circles: const [TiandituCircle(center: beijing, radiusInMeters: 1200)],
+        userLocation: _position == null
+            ? null
+            : TiandituUserLocation(
+                position: _position!.coordinate,
+                accuracyInMeters: _position!.accuracy,
+                heading: _position!.heading,
+              ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _locate,
+        child: const Icon(Icons.my_location),
+      ),
+      bottomNavigationBar: _message == null
+          ? null
+          : Material(
+              color: Theme.of(context).colorScheme.errorContainer,
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(_message!),
+                ),
+              ),
+            ),
     );
   }
 }

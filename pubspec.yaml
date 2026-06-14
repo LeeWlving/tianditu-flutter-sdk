@@ -1,16 +1,20 @@
 name: tianditu
-description: "天地图Flutter SDK，封装了天地图WEB服务API"
-version: 0.0.1
-homepage: https://github.com/yourusername/tianditu-flutter-sdk
+description: "A cross-platform Tianditu map widget and Web Service SDK for Flutter."
+version: 0.1.0
+homepage: https://github.com/LeeWlving/tianditu-flutter-sdk
+repository: https://github.com/LeeWlving/tianditu-flutter-sdk
 
 environment:
   sdk: ^3.9.2
-  flutter: '>=3.3.0'
+  flutter: '>=3.35.0'
 
 dependencies:
   flutter:
     sdk: flutter
+  flutter_map: ^8.3.0
+  geolocator: ^13.0.4
   http: ^1.2.1
+  latlong2: ^0.9.1
   xml: ^6.5.0
 
 dev_dependencies:
